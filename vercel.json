@@ -1,6 +1,9 @@
 {
   "framework": "nextjs",
   "buildCommand": "npm run build",
+  "git": {
+    "deploymentEnabled": false
+  },
   "headers": [
     {
       "source": "/(.*)",

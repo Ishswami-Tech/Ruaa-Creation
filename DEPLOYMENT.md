@@ -4,6 +4,8 @@ After activation, every contributor's push to `main` runs type checks, commerce 
 
 The workflow is `.github/workflows/verify.yml`. Production jobs run serially. Checkout credentials are not persisted, and the deployment token is only supplied to steps that authenticate with Vercel. Commit authors are preserved; no co-authors are added.
 
+Vercel's own Git-triggered deployments are disabled with `git.deploymentEnabled: false` in `vercel.json`. GitHub Actions remains the automatic deployment trigger for `main`, using `VERCEL_TOKEN`. Manual CLI deployments remain available. This setting does not disable Vercel's authorization checks: the token-based deployment can still be blocked by author or plan restrictions. Blocked deployments fail the workflow promptly instead of waiting for the full job timeout.
+
 ## One-time activation
 
 1. Create a Vercel access token scoped to `ishswamitech-1274s-projects` at https://vercel.com/account/settings/tokens. Use an appropriate expiry and rotate it before expiration.
