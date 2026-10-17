@@ -1,15 +1,18 @@
-name: Verify storefront
+name: Verify and deploy storefront
 on:
   push:
   pull_request:
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 24
           cache: npm
@@ -17,3 +20,83 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run build
+
+  deploy:
+    name: Deploy production
+    needs: verify
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && vars.VERCEL_DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    concurrency:
+      group: vercel-production
+      cancel-in-progress: false
+    env:
+      VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+      VERCEL_TEAM_SLUG: ishswamitech-1274s-projects
+      VERCEL_CLI_VERSION: '64.5.0'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Check deployment configuration
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          test -n "$VERCEL_TOKEN" || { echo '::error::Add VERCEL_TOKEN to the production environment secrets.'; exit 1; }
+          test "$VERCEL_ORG_ID" = 'team_gZnhGiNvZNh8tCbbzHRECptV'
+          test "$VERCEL_PROJECT_ID" = 'prj_BiBr9sxkPmnCICYe2BB6DuzglEje'
+      - name: Install Vercel CLI
+        run: npm install --global "vercel@$VERCEL_CLI_VERSION"
+      - run: npm ci
+      - name: Pull production configuration
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: vercel pull --yes --environment=production --scope "$VERCEL_TEAM_SLUG"
+      - name: Build production artifact
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: vercel build --prod --scope "$VERCEL_TEAM_SLUG"
+      - name: Stage production deployment
+        id: stage
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          vercel deploy --prebuilt --prod --skip-domain --yes --json --scope "$VERCEL_TEAM_SLUG" > "$RUNNER_TEMP/vercel-deployment.json"
+          node <<'NODE'
+          const fs = require('node:fs');
+          const result = JSON.parse(fs.readFileSync(`${process.env.RUNNER_TEMP}/vercel-deployment.json`, 'utf8'));
+          const deployment = result.deployment;
+          if (result.status !== 'ok' || deployment?.readyState !== 'READY' || deployment.target !== 'production') throw new Error('Production deployment is not ready');
+          const url = new URL(deployment.url);
+          if (url.protocol !== 'https:' || url.origin !== deployment.url || !url.hostname.endsWith('.vercel.app')) throw new Error('Unexpected deployment URL');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `url=${url.origin}\n`);
+          NODE
+      - name: Verify staged pages
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          DEPLOYMENT_URL: ${{ steps.stage.outputs.url }}
+        run: |
+          vercel inspect "$DEPLOYMENT_URL" --json --scope "$VERCEL_TEAM_SLUG" > "$RUNNER_TEMP/vercel-inspection.json"
+          node <<'NODE'
+          const fs = require('node:fs');
+          const deployment = JSON.parse(fs.readFileSync(`${process.env.RUNNER_TEMP}/vercel-inspection.json`, 'utf8'));
+          if (deployment.name !== 'ruaa-creation' || deployment.contextName !== process.env.VERCEL_TEAM_SLUG || deployment.target !== 'production' || deployment.readyState !== 'READY') throw new Error('Deployment target verification failed');
+          if (`https://${deployment.url}` !== process.env.DEPLOYMENT_URL) throw new Error('Deployment URL mismatch');
+          NODE
+          for page in / /shop/ /checkout/ /robots.txt /sitemap.xml; do
+            status=$(vercel curl "$page" --deployment "$DEPLOYMENT_URL" --scope "$VERCEL_TEAM_SLUG" -- --silent --show-error --fail --output /dev/null --write-out '%{http_code}')
+            test "$status" = '200' || { echo "::error::Page $page returned $status"; exit 1; }
+          done
+      - name: Promote tested deployment
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          DEPLOYMENT_URL: ${{ steps.stage.outputs.url }}
+        run: |
+          vercel promote "$DEPLOYMENT_URL" --yes --scope "$VERCEL_TEAM_SLUG"
+          echo 'Production updated: https://ruaa-creation.vercel.app' >> "$GITHUB_STEP_SUMMARY"
