@@ -71,10 +71,10 @@ jobs:
           node <<'NODE'
           const fs = require('node:fs');
           const result = JSON.parse(fs.readFileSync(`${process.env.RUNNER_TEMP}/vercel-deployment.json`, 'utf8'));
-          const deployment = result.deployment;
-          if (result.status !== 'ok' || !deployment || deployment.target !== 'production') throw new Error('Production deployment was not created');
-          const url = new URL(deployment.url);
-          if (url.protocol !== 'https:' || url.origin !== deployment.url || !url.hostname.endsWith('.vercel.app')) throw new Error('Unexpected deployment URL');
+          const deployment = result.deployment ?? result;
+          if (result.status === 'error' || result.error || typeof deployment.url !== 'string') throw new Error('Production deployment was not created');
+          const url = new URL(deployment.url.includes('://') ? deployment.url : `https://${deployment.url}`);
+          if (url.protocol !== 'https:' || url.username || url.password || url.pathname !== '/' || url.search || url.hash || !url.hostname.endsWith('.vercel.app')) throw new Error('Unexpected deployment URL');
           fs.appendFileSync(process.env.GITHUB_OUTPUT, `url=${url.origin}\n`);
           NODE
       - name: Wait for staged deployment
@@ -109,7 +109,7 @@ jobs:
           if (`https://${deployment.url}` !== process.env.DEPLOYMENT_URL) throw new Error('Deployment URL mismatch');
           NODE
           for page in / /shop/ /checkout/ /robots.txt /sitemap.xml; do
-            status=$(vercel curl "$page" --deployment "$DEPLOYMENT_URL" --scope "$VERCEL_TEAM_SLUG" -- --silent --show-error --fail --output /dev/null --write-out '%{http_code}')
+            status=$(vercel curl "${DEPLOYMENT_URL}${page}" --scope "$VERCEL_TEAM_SLUG" -- --silent --show-error --fail --output /dev/null --write-out '%{http_code}')
             test "$status" = '200' || { echo "::error::Page $page returned $status"; exit 1; }
           done
       - name: Promote tested deployment
