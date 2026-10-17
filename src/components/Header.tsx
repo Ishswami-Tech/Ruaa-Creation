@@ -20,6 +20,7 @@ const NAV = [
   { href: "/custom/", label: "Custom" },
   { href: "/hand-painting/", label: "Hand Painting" },
   { href: "/about/", label: "Our Story" },
+  { href: "/collections/sale/", label: "Sale", sale: true },
 ];
 
 export default function Header() {
@@ -47,7 +48,7 @@ export default function Header() {
               Shop <span aria-hidden="true">▾</span>
             </button>
             {NAV.map((n) => (
-              <Link key={n.href} href={n.href} aria-current={path === n.href ? "page" : undefined}>{n.label}</Link>
+              <Link key={n.href} href={n.href} className={"sale" in n ? "nav-sale" : undefined} aria-current={path === n.href ? "page" : undefined}>{n.label}</Link>
             ))}
             <Link href="/account/" className="mobile-only">My orders</Link>
             <Link href="/contact/" className="mobile-only">Contact</Link>
