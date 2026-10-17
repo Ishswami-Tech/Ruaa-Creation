@@ -1,15 +1,13 @@
 import Link from "next/link";
 import { site, waLink } from "@/lib/site";
+import Brand from "./Brand";
 
 export default function Footer() {
   return (
     <footer className="site-footer">
       <div className="wrap footer-grid">
         <div className="footer-brand">
-          <div className="brand light">
-            <img src="/images/logo.jpg" alt="" width={52} height={52} />
-            <span>{site.name}</span>
-          </div>
+          <Brand light />
           <p>Sarees, designer blouses and ready-to-wear — finished by hand. {site.tagline}.</p>
         </div>
         <nav aria-label="Shop">

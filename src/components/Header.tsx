@@ -7,6 +7,7 @@ import { useCart } from "./CartProvider";
 import { site, formatINR } from "@/lib/site";
 import MiniCart from "./MiniCart";
 import SearchOverlay from "./SearchOverlay";
+import Brand from "./Brand";
 
 const SHOP_MENU = [
   { title: "Shop by category", links: [["Sarees", "/collections/sarees/"], ["Designer Blouses", "/collections/blouses/"], ["Tassels & Latkans", "/collections/tassels/"], ["Western Wear", "/collections/western/"], ["Traditional Wear", "/collections/traditional/"], ["Hand Painted", "/collections/hand-painted/"]] },
@@ -38,9 +39,8 @@ export default function Header() {
       </div>
       <header className="site-header">
         <div className="wrap header-row">
-          <Link href="/" className="brand" aria-label={`${site.name} home`}>
-            <img src="/images/logo.jpg" alt="" width={56} height={56} />
-            <span>{site.name}</span>
+          <Link href="/" className="brand-link" aria-label={`${site.name} home`}>
+            <Brand />
           </Link>
 
           <nav aria-label="Main" className={`main-nav ${open ? "is-open" : ""}`}>
