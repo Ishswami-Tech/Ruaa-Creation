@@ -1,10 +1,7 @@
-import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import Link from "next/link";
 
-export const metadata: Metadata = {
-  title: "Our story",
-  description: "Why Ruaa Creation makes ready-to-wear pieces that fit like they were stitched for you.",
-};
+export const metadata = pageMetadata('Our story', 'Discover Ruaa Creation: sarees, designer blouses and custom outfits, finished by hand and made to fit.', '/about/');
 
 const VALUES = [
   ["Made by hand", "Painting, tassels, finishing — the details are done by hand, not by machine.", "/images/painting.png"],

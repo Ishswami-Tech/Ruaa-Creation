@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { discountPct, getProduct, products, type Product } from "@/lib/products";
+import { useEffect, useState, useRef } from "react";
+import { useDialogBehavior } from "./useDialogBehavior";
+import { discountPct, type Product } from "@/lib/products";
 import { site, formatINR } from "@/lib/site";
 import { useCart } from "./CartProvider";
+import { useCatalogue } from "./CatalogueProvider";
 import ProductCard from "./ProductCard";
 
 export function Price({ p, size = 15 }: { p: Product; size?: number }) {
@@ -53,8 +55,9 @@ export function FreeShipBar() {
 }
 
 export function RecentlyViewed({ exclude, title = "Recently viewed" }: { exclude?: string; title?: string }) {
+  const catalogue = useCatalogue();
   const { recent, ready } = useCart();
-  const list = recent.filter((s) => s !== exclude).map(getProduct).filter(Boolean).slice(0, 4) as Product[];
+  const list = recent.filter((s) => s !== exclude).map((slug) => catalogue.find((p) => p.slug === slug)).filter(Boolean).slice(0, 4) as Product[];
   if (!ready || list.length === 0) return null;
   return (
     <section className="shop-ui" style={{ padding: "56px 0", background: "transparent" }}>
@@ -67,11 +70,13 @@ export function RecentlyViewed({ exclude, title = "Recently viewed" }: { exclude
 }
 
 export function SizeGuideModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const dialog = useRef<HTMLDivElement>(null);
+  useDialogBehavior(open, onClose, dialog);
   if (!open) return null;
   const rows: [string, number, number, number, number][] = [["XS", 32, 26, 35, 13.5], ["S", 34, 28, 37, 14], ["M", 36, 30, 39, 14.5], ["L", 38, 32, 41, 15], ["XL", 40, 34, 43, 15.5], ["XXL", 42, 36, 45, 16]];
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal" role="dialog" aria-modal="true" aria-labelledby="sg-title" onClick={(e) => e.stopPropagation()}>
+      <div ref={dialog} tabIndex={-1} className="modal" role="dialog" aria-modal="true" aria-labelledby="sg-title" onClick={(e) => e.stopPropagation()}>
         <div className="modal-head"><h2 id="sg-title" className="shop-title" style={{ fontSize: 28 }}>Size guide</h2><button className="icon-btn" aria-label="Close size guide" onClick={onClose}>✕</button></div>
         <p style={{ margin: "0 0 16px", color: "var(--shop-muted)" }}>Body measurements in inches. Between sizes? Pick the larger — every blouse has 1&quot; side margin.</p>
         <div className="table-box"><table><thead><tr><th>Size</th><th>Bust</th><th>Waist</th><th>Hip</th><th>Shoulder</th></tr></thead>
@@ -94,6 +99,7 @@ export function useDeliveryDate(days: number) {
 }
 
 export function YouMayLike({ exclude, max = 4 }: { exclude: string[]; max?: number }) {
+  const products = useCatalogue();
   const list = products.filter((p) => !exclude.includes(p.slug)).sort((a, b) => (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0)).slice(0, max);
   return <div className="product-grid">{list.map((p) => <ProductCard key={p.slug} p={p} />)}</div>;
 }

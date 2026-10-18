@@ -102,7 +102,7 @@ export default function PoliciesClient() {
             <h2 className="h2">Privacy policy</h2>
             <p>We collect only what we need to fulfil your order and stay in touch: your name, phone, email, address, measurements (for custom orders) and order history. Payments are handled by our payment partner — we never see or store your card details.</p>
             <p>We use your data to deliver orders, send order updates on WhatsApp and email, and — only if you opt in — share new collections. We do not sell your data. You can ask us to access, correct or delete your personal data at any time, in line with the Digital Personal Data Protection Act, 2023.</p>
-            <p>Your bag is saved only in your own browser. Checkout details are included in a WhatsApp draft link when you request an order. We receive the message only after you send it. For privacy questions or complaints, <a href={waLink("I have a privacy question or complaint.")} target="_blank" rel="noopener noreferrer">contact us on WhatsApp</a>.</p>
+            <p>Your bag, saved addresses, measurements and device order history stay in your browser. When online order recording is available, submitting checkout also saves your contact and delivery details, selected pieces and order notes to our store database so authorised staff can manage your request. We do not collect card details. The WhatsApp link contains the details needed to discuss your order; WhatsApp receives the message when you send it. For privacy questions or deletion requests, <a href={waLink("I have a privacy question or complaint.")} target="_blank" rel="noopener noreferrer">contact us on WhatsApp</a>.</p>
           </div>
         )}
 

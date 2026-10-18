@@ -2,14 +2,16 @@
 
 import Link from "next/link";
 import { useCart } from "@/components/CartProvider";
-import { getProduct, type Product } from "@/lib/products";
+import { type Product } from "@/lib/products";
+import { useCatalogue } from "@/components/CatalogueProvider";
 import ProductCard from "@/components/ProductCard";
 import { RecentlyViewed } from "@/components/bits";
 import { waLink, site, formatINR } from "@/lib/site";
 
 export default function WishlistPage() {
+  const catalogue = useCatalogue();
   const { wishlist, ready } = useCart();
-  const items = wishlist.map(getProduct).filter(Boolean) as Product[];
+  const items = wishlist.map((slug) => catalogue.find((p) => p.slug === slug)).filter(Boolean) as Product[];
   const share = waLink(`My Ruaa Creation wishlist\n\n${items.map((p) => `• ${p.name} — ${formatINR(p.price)}\n  ${site.url}/product/${p.slug}/`).join("\n")}`);
 
   return (

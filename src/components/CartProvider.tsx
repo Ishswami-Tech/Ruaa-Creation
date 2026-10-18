@@ -4,11 +4,12 @@
  * Store state for the whole site: bag, wishlist, recently viewed, saved order
  * requests, customer profile (name, phone, measurements, addresses), the
  * slide-out bag and the search overlay. Everything is kept in the visitor's
- * own browser (localStorage); nothing is sent to a server.
+ * own browser (localStorage). Checkout requests are also recorded by the server
+ * when the database is connected. Customer profiles never grant admin access.
  */
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { restoreCart, quantity } from "@/lib/cart";
-import { getProduct } from "@/lib/products";
+import { restoreCart, restoreOrderLines, quantity } from "@/lib/cart";
+import { useCatalogue } from "./CatalogueProvider";
 
 export type CartLine = {
   key: string;
@@ -77,13 +78,13 @@ function load<T>(key: string, fallback: T): T {
 function save(key: string, v: unknown) {
   try { localStorage.setItem(key, JSON.stringify(v)); } catch {}
 }
-const slugList = (v: unknown) => (Array.isArray(v) ? v.filter((s): s is string => typeof s === "string" && !!getProduct(s)).slice(0, 100) : []);
+const slugList = (v: unknown) => (Array.isArray(v) ? v.filter((s): s is string => typeof s === "string").slice(0, 100) : []);
 
 function restoreOrders(v: unknown): SavedOrder[] {
   if (!Array.isArray(v)) return [];
   return v
     .filter((o) => o && typeof o === "object" && typeof o.id === "string" && typeof o.date === "string" && Array.isArray(o.lines))
-    .map((o) => ({ id: String(o.id).slice(0, 60), date: o.date, lines: restoreCart(o.lines), total: Number(o.total) || 0, payment: String(o.payment ?? "").slice(0, 60), name: String(o.name ?? "").slice(0, 80), city: String(o.city ?? "").slice(0, 80), link: typeof o.link === "string" && o.link.startsWith("https://wa.me/") ? o.link : "" }))
+    .map((o) => ({ id: String(o.id).slice(0, 60), date: o.date, lines: restoreOrderLines(o.lines), total: Number(o.total) || 0, payment: String(o.payment ?? "").slice(0, 60), name: String(o.name ?? "").slice(0, 80), city: String(o.city ?? "").slice(0, 80), link: typeof o.link === "string" && o.link.startsWith("https://wa.me/") ? o.link : "" }))
     .slice(0, 50);
 }
 function restoreProfile(v: unknown): Profile {
@@ -100,6 +101,7 @@ function restoreProfile(v: unknown): Profile {
 }
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
+  const catalogue = useCatalogue();
   const [ready, setReady] = useState(false);
   const [lines, setLines] = useState<CartLine[]>([]);
   const [wishlist, setWishlist] = useState<string[]>([]);
@@ -111,13 +113,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
-    setLines(restoreCart(load(K.cart, [])));
+    setLines(restoreCart(load(K.cart, []), catalogue));
     setWishlist(slugList(load(K.wish, [])));
     setRecent(slugList(load(K.recent, [])));
     setOrders(restoreOrders(load(K.orders, [])));
     setProfile(restoreProfile(load(K.profile, null)));
     setReady(true);
   }, []);
+
+  useEffect(() => { if (ready) setLines((previous) => restoreCart(previous, catalogue)); }, [catalogue, ready]);
 
   useEffect(() => { if (ready) save(K.cart, lines); }, [lines, ready]);
   useEffect(() => { if (ready) save(K.wish, wishlist); }, [wishlist, ready]);
@@ -131,23 +135,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     return () => clearTimeout(t);
   }, [toast]);
 
-  useEffect(() => {
-    document.body.style.overflow = drawerOpen || searchOpen ? "hidden" : "";
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { setDrawerOpen(false); setSearchOpen(false); } };
-    window.addEventListener("keydown", onKey);
-    return () => { window.removeEventListener("keydown", onKey); document.body.style.overflow = ""; };
-  }, [drawerOpen, searchOpen]);
-
   const add = useCallback((line: Omit<CartLine, "key" | "qty">, qty = 1) => {
     const key = `${line.slug}|${line.options}`;
     setLines((prev) => {
       const found = prev.find((l) => l.key === key);
-      if (found) return restoreCart(prev.map((l) => (l.key === key ? { ...l, qty: quantity(l.qty + quantity(qty)) } : l)));
-      return restoreCart([...prev, { ...line, key, qty: quantity(qty) }]);
+      if (found) return restoreCart(prev.map((l) => (l.key === key ? { ...l, qty: quantity(l.qty + quantity(qty)) } : l)), catalogue);
+      return restoreCart([...prev, { ...line, key, qty: quantity(qty) }], catalogue);
     });
     setDrawerOpen(true);
-  }, []);
-  const setQty = useCallback((key: string, qty: number) => setLines((p) => p.map((l) => (l.key === key ? { ...l, qty: quantity(qty) } : l))), []);
+  }, [catalogue]);
+  const setQty = useCallback((key: string, qty: number) => setLines((p) => restoreCart(p.map((l) => (l.key === key ? { ...l, qty: quantity(qty) } : l)), catalogue)), [catalogue]);
   const remove = useCallback((key: string) => setLines((p) => p.filter((l) => l.key !== key)), []);
   const clear = useCallback(() => setLines([]), []);
 

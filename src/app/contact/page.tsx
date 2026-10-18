@@ -1,12 +1,9 @@
-import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import Link from "next/link";
 import { site, waLink } from "@/lib/site";
 import ContactForm from "./ContactForm";
 
-export const metadata: Metadata = {
-  title: "Contact",
-  description: "Contact Ruaa Creation on WhatsApp for orders and custom designs.",
-};
+export const metadata = pageMetadata('Contact & order enquiries', 'Contact Ruaa Creation on WhatsApp for saree orders, product questions, custom designs and fitting enquiries.', '/contact/');
 
 export default function ContactPage() {
   return (

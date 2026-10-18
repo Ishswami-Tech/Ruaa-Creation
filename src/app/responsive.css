@@ -1,0 +1,125 @@
+/* Shared responsive behaviour for the storefront and transaction screens. */
+.announce-mobile, .mobile-category-nav { display: none; }
+.breadcrumb { overflow-wrap: anywhere; }
+.pcard-img img.product-photo { width: 100%; height: 100%; object-fit: cover; mix-blend-mode: normal; }
+.sold-out { cursor: default; opacity: .6; }
+.checkout-error { padding: 14px; border-radius: 10px; background: #fff1ec; color: #963e33; font-size: 14px; }
+.summary .line { gap: 16px; }
+.summary .line > :last-child { text-align: right; flex-shrink: 0; }
+.summary input { min-width: 0; }
+.field { min-width: 0; }
+.catalog-filter-toggle { display: none; }
+@media (max-width: 860px) { .catalog-filter-toggle { display: inline-flex; } }
+.drawer-lines { min-height: 0; }
+.drawer-line > div, .search-result > div { min-width: 0; overflow-wrap: anywhere; }
+.searchbar input { min-width: 0; }
+.results { min-width: 0; }
+.shop-ui .table-box { max-width: 100%; overflow-x: auto; }
+.btn-shop, .btn, .btn-sm { text-align: center; }
+body:has(.admin-app), body:has(.admin-login) { padding-bottom: 0; }
+@media (min-width: 981px) and (max-width: 1200px) {
+  .main-nav { gap: 13px; font-size: 11px; letter-spacing: .06em; }
+  .header-actions .icon-btn { width: 36px; }
+  .brand img { width: 52px; height: 52px; }
+  .brand-name { font-size: 30px; }
+  .brand-caption { font-size: 8px; }
+}
+@media (max-width: 980px) {
+  .mega { max-height: calc(100dvh - 140px - env(safe-area-inset-bottom)); overflow-y: auto; overscroll-behavior: contain; }
+  body:has(.main-nav.is-open) .wa-float, body:has(.mega) .wa-float { display: none; }
+  .main-nav.is-open { max-height: calc(100dvh - 150px); overflow-y: auto; overscroll-behavior: contain; }
+  .main-nav .nav-shop { text-align: left; min-height: 48px; }
+  .mega-grid { padding-top: 20px; gap: 24px; }
+  .hero .split, .page-hero .split { gap: 36px; }
+  .cart-layout { gap: 28px; }
+}
+@media (max-width: 760px) {
+  body { padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
+  .announce { font-size: 10px; line-height: 1.6; letter-spacing: .025em; padding: 8px 16px; }
+  .hero-arch { width: min(100%, 480px); justify-self: center; }
+  .hero-arch img { height: clamp(300px, 95vw, 460px); }
+  .hero .h1 { font-size: clamp(42px, 9vw, 66px); }
+  .lead { font-size: 16px; line-height: 1.75; }
+  .hero .ticks { flex-direction: column; gap: 6px; font-size: 13px; }
+  .split { gap: 30px; }
+  .section { padding-block: 52px; }
+  .page-hero { padding-block: 40px; }
+  .shop-hero { padding: 28px 22px; border-radius: 16px; }
+  .shop-hero p { font-size: 14px; }
+  .shop-hero .shop-title { font-size: clamp(30px, 7vw, 42px); }
+  .toolbar { gap: 16px; }
+  .toolbar .chips { gap: 7px; width: 100%; }
+  .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 12px; }
+  .pcard-img { border-radius: 10px; }
+  .pcard .pill { max-width: calc(100% - 20px); padding: 4px 8px; font-size: 10px; left: 8px; }
+  .pcard .pill.sale { left: auto; right: 8px; bottom: 8px; }
+  .pcard-name { font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+  .pcard-meta { font-size: 10px; }
+  .pcard-row { flex-direction: column; align-items: flex-start; gap: 9px; margin-top: auto; }
+  .pcard-row .btn-sm { width: 100%; justify-content: center; min-height: 42px; font-size: 11px; padding-inline: 10px; }
+  .pcard .price { font-size: 13px; }
+  .pcard .price-wrap { gap: 4px; font-size: 12px !important; }
+  .pcard .wish-btn { width: 34px; height: 34px; top: 7px; right: 7px; }
+  .pcard .low { font-size: 10px; }
+  .edits { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .edit-card { padding: 20px; min-height: 210px; }
+  .edit-card.big { min-height: 320px; }
+  .edit-card.big img { max-height: 66%; top: 18px; }
+  .edit-card:not(.big):not(.dark) span { max-width: 100%; position: relative; z-index: 1; }
+  .edit-card:not(.big):not(.dark) img { width: 60%; max-height: 52%; top: 18px; right: 8px; transform: none; }
+  .edit-card:not(.big):not(.dark) b { font-size: 21px; }
+  .edit-card small { font-size: 10px; }
+  .edit-card em { font-size: 10px; }
+  .pdp { gap: 28px; padding-bottom: 36px; }
+  .pdp-info { gap: 18px; }
+  .option { flex-wrap: wrap; align-items: flex-start; font-size: 13px; padding: 13px; }
+  .co-form fieldset { grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
+  .form { padding: 22px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
+  .co-form .btn-shop { padding: 12px 18px; font-size: 13px; }
+  .cart-layout > .summary { max-width: none; width: 100%; }
+  .summary { padding: 22px; }
+  .cart-line { gap: 14px; flex-wrap: nowrap; }
+  .cart-line .cart-thumb { width: 78px; }
+  .cart-line > div { flex: 1 1 0 !important; }
+  .cart-line .shop-title { font-size: 18px !important; }
+  .cart-line > div > div:first-child { flex-wrap: wrap; gap: 7px !important; }
+  .drawer { padding: 18px 18px max(18px,env(safe-area-inset-bottom)); height: 100dvh; }
+  .drawer-foot .btn-shop { font-size: 13px; }
+  .modal-backdrop { padding: 16px; }
+  .modal { padding: 20px; max-height: 88dvh; }
+  .search-panel { padding: 22px 16px; max-height: 88dvh; }
+  .account-nav { flex-basis: 100%; gap: 4px; }
+  .account-nav > .row { flex-basis: 100%; }
+  .account-nav button, .account-nav a { padding-inline: 12px; font-size: 13px; }
+  .account > .results { flex-basis: 100%; width: 100%; }
+  .footer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 30px 20px; }
+  .footer-brand { grid-column: 1 / -1; max-width: 420px; }
+  .footer-grid > div:last-child { grid-column: 1 / -1; }
+  .footer-grid a { overflow-wrap: anywhere; font-size: 13px; }
+  .footer-bottom { font-size: 11px; padding-right: 48px; }
+  .bottom-nav { height: calc(64px + env(safe-area-inset-bottom)); }
+  .sticky-buy { bottom: calc(64px + env(safe-area-inset-bottom)); margin-inline: 0; }
+  .sticky-buy .btn-shop { padding-inline: 20px; font-size: 13px; }
+  .sticky-buy > div { min-width: 0; }
+  .sticky-buy > div > strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sticky-buy .btn-shop { flex-shrink: 0; }
+  .wa-float { width: 46px; height: 46px; right: 14px; bottom: calc(80px + env(safe-area-inset-bottom)); }
+  body:has(.sticky-buy) .wa-float { bottom: calc(150px + env(safe-area-inset-bottom)); }
+  .toast { width: max-content; max-width: calc(100% - 32px); font-size: 12px; text-align: center; }
+  input:not([type=checkbox]):not([type=radio]):not([type=color]), select, textarea { font-size: 16px !important; }
+}
+@media (max-width: 380px) {
+  .brand { gap: 6px; }
+  .brand img { width: 38px; height: 38px; }
+  .brand-name { font-size: 25px; }
+  .brand-caption { font-size: 7px; }
+  .header-actions .icon-btn { width: 33px; }
+  .hero .row > .btn { width: 100%; }
+  .hero .h1 { font-size: 42px; }
+  .h2 { font-size: 32px; }
+  .shop-ui h1.shop-title { font-size: 34px !important; }
+  .edit-card { padding: 16px; }
+  .edit-card:not(.big):not(.dark) b { font-size: 19px; }
+  .cart-line .cart-thumb { width: 64px; }
+  .summary { padding: 18px; }
+}

@@ -5,26 +5,31 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useCart } from "./CartProvider";
 import { searchProducts, collections } from "@/lib/products";
+import { useCatalogue } from "./CatalogueProvider";
 import { formatINR } from "@/lib/site";
+import { useDialogBehavior } from "./useDialogBehavior";
 
 const POPULAR = ["organza saree", "blouse", "lehenga", "hand painted", "tassels", "dress"];
 
 export default function SearchOverlay() {
+  const catalogue = useCatalogue();
   const { searchOpen, setSearchOpen } = useCart();
   const [q, setQ] = useState("");
   const input = useRef<HTMLInputElement>(null);
   const router = useRouter();
+  const dialog = useRef<HTMLDivElement>(null);
+  useDialogBehavior(searchOpen, () => setSearchOpen(false), dialog);
 
   useEffect(() => { if (searchOpen) setTimeout(() => input.current?.focus(), 30); else setQ(""); }, [searchOpen]);
   if (!searchOpen) return null;
 
-  const results = searchProducts(q).slice(0, 6);
+  const results = searchProducts(q, catalogue).slice(0, 6);
   const close = () => setSearchOpen(false);
   const go = (term: string) => { close(); router.push(`/search/?q=${encodeURIComponent(term)}`); };
 
   return (
     <div className="drawer-backdrop search-backdrop" onClick={close}>
-      <div className="search-panel shop-ui" role="dialog" aria-modal="true" aria-label="Search" onClick={(e) => e.stopPropagation()}>
+      <div ref={dialog} tabIndex={-1} className="search-panel shop-ui" role="dialog" aria-modal="true" aria-label="Search" onClick={(e) => e.stopPropagation()}>
         <form className="searchbar" style={{ maxWidth: "none" }} role="search" onSubmit={(e) => { e.preventDefault(); if (q.trim()) go(q); }}>
           <label htmlFor="overlay-q" className="sr-only">Search products</label>
           <input id="overlay-q" ref={input} type="search" placeholder="Search sarees, blouses, lehengas…" value={q} onChange={(e) => setQ(e.target.value)} autoComplete="off" />

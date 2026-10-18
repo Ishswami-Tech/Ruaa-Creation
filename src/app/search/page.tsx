@@ -4,12 +4,14 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { searchProducts } from "@/lib/products";
+import { useCatalogue } from "@/components/CatalogueProvider";
 import Catalog from "@/components/Catalog";
 import { YouMayLike } from "@/components/bits";
 
 function Results() {
+  const catalogue = useCatalogue();
   const q = useSearchParams().get("q") ?? "";
-  const hits = searchProducts(q);
+  const hits = searchProducts(q, catalogue);
   if (hits.length === 0)
     return (
       <div className="shop-ui">

@@ -1,11 +1,8 @@
 import { Suspense } from "react";
-import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import ShopClient from "./ShopClient";
 
-export const metadata: Metadata = {
-  title: "Shop ready-to-wear",
-  description: "Shop ready-to-wear sarees, designer blouses, tassels, western and traditional wear — finished by hand.",
-};
+export const metadata = pageMetadata('Shop sarees, designer blouses & festive wear', 'Explore Ruaa Creation ready-to-wear sarees, designer blouses, tassels, dresses and traditional sets. Choose your piece and request an order on WhatsApp.', '/shop/');
 
 export default function ShopPage() {
   return (

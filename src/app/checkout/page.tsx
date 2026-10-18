@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useStoreConnected } from "@/components/CatalogueProvider";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/components/CartProvider";
 import { site, formatINR, waLink } from "@/lib/site";
@@ -16,11 +17,14 @@ const PAY = [
 const STATES = ["Andhra Pradesh","Assam","Bihar","Chhattisgarh","Delhi","Goa","Gujarat","Haryana","Himachal Pradesh","Jharkhand","Karnataka","Kerala","Madhya Pradesh","Maharashtra","Odisha","Punjab","Rajasthan","Tamil Nadu","Telangana","Uttar Pradesh","Uttarakhand","West Bengal","Other"];
 
 export default function CheckoutPage() {
+  const connected = useStoreConnected();
+  const [submitting, setSubmitting] = useState(false);
+  const request = useRef({ signature: "", key: "" });
   const { lines, subtotal, ready, saveOrder, profile, updateProfile } = useCart();
   const router = useRouter();
   const [pay, setPay] = useState("upi");
   const [coupon, setCoupon] = useState<string | null>(null);
-  const [form, setForm] = useState({ name: "", phone: "", email: "", address: "", city: "", state: "West Bengal", pin: "", notes: "" });
+  const [form, setForm] = useState({ name: "", phone: "", email: "", address: "", city: "", state: "", pin: "", notes: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [placed, setPlaced] = useState<{ id: string; link: string } | null>(null);
 
@@ -45,13 +49,30 @@ export default function CheckoutPage() {
     if (form.email && !/^\S+@\S+\.\S+$/.test(form.email)) e.email = "Check your email address.";
     if (!form.address.trim()) e.address = "Please enter your address.";
     if (!form.city.trim()) e.city = "Please enter your city.";
+    if (!form.state) e.state = "Please choose your state.";
     if (!/^[1-9]\d{5}$/.test(form.pin)) e.pin = "Enter a 6-digit pincode.";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
-  const place = () => {
-    if (!ready || lines.length === 0 || !validate() || codBlocked) return;
+  const place = async () => {
+    if (submitting || !ready || lines.length === 0 || !validate() || codBlocked) return;
+    if (connected) {
+      setSubmitting(true);
+      const payload = { lines: lines.map(({ slug, options, qty }) => ({ slug, options, qty })), customer: { ...form, phone: form.phone.replace(/[\s()-]/g, "").replace(/^(?:\+91|91)(?=\d{10}$)/, "") }, payment: pay, coupon, expectedTotal: t.total };
+      const signature = JSON.stringify(payload);
+      if (request.current.signature !== signature) request.current = { signature, key: crypto.randomUUID() };
+      try {
+        const response = await fetch("/api/orders/", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...payload, requestKey: request.current.key }) });
+        const order = await response.json();
+        if (!response.ok) throw new Error(order.error || "Your request could not be recorded. Please try again.");
+        saveOrder({ id: order.id, date: order.date, lines: order.lines, total: order.total, payment: order.payment.toUpperCase(), name: form.name, city: form.city, link: order.link });
+        setPlaced({ id: order.id, link: order.link });
+        router.push(`/checkout/success/?id=${encodeURIComponent(order.id)}`);
+      } catch (error) { setErrors((e) => ({ ...e, submit: error instanceof Error ? error.message : "Please try again." })); }
+      finally { setSubmitting(false); }
+      return;
+    }
     const id = "RC-" + crypto.randomUUID().slice(0, 8).toUpperCase();
     const items = lines.map((l, i) => `${i + 1}. ${l.name} — ${l.options} × ${l.qty} = ${formatINR(l.unitPrice * l.qty)}`).join("\n");
     const msg = [
@@ -102,6 +123,7 @@ export default function CheckoutPage() {
   return (
     <div className="shop-ui">
       <div className="wrap" style={{ paddingTop: 36 }}>
+        <h1 className="shop-title" style={{ fontSize: "clamp(32px, 5vw, 46px)", marginBottom: 20 }}>Delivery &amp; payment</h1>
         <ol aria-label="Checkout steps" className="row" style={{ listStyle: "none", margin: 0, padding: 0, fontSize: 14, gap: 10 }}>
           <li><Link href="/cart/">Bag</Link></li><li aria-hidden="true">›</li><li><strong>Details &amp; payment</strong></li><li aria-hidden="true">›</li><li style={{ color: "var(--shop-muted)" }}>Confirmation</li>
         </ol>
@@ -124,7 +146,7 @@ export default function CheckoutPage() {
                 <legend>Delivery address</legend>
                 <Field label="House / flat, street, area" err={errors.address} full><input autoComplete="street-address" value={form.address} onChange={set("address")} /></Field>
                 <Field label="City" err={errors.city}><input autoComplete="address-level2" value={form.city} onChange={set("city")} /></Field>
-                <Field label="State"><select value={form.state} onChange={set("state")}>{STATES.map((s) => <option key={s}>{s}</option>)}</select></Field>
+                <Field label="State" err={errors.state}><select value={form.state} onChange={set("state")}><option value="" disabled>Choose your state</option>{STATES.map((s) => <option key={s}>{s}</option>)}</select></Field>
                 <Field label="Pincode" err={errors.pin}><input inputMode="numeric" maxLength={6} autoComplete="postal-code" value={form.pin} onChange={(e) => setForm({ ...form, pin: e.target.value.replace(/\D/g, "") })} /></Field>
                 <Field label="Order notes (optional)" full><textarea rows={3} value={form.notes} onChange={set("notes")} placeholder="Gift message, delivery date, measurements…" style={{ border: "1px solid var(--shop-chip)", borderRadius: 10, padding: "10px 12px" }} /></Field>
               </fieldset>
@@ -138,11 +160,12 @@ export default function CheckoutPage() {
                 ))}
                 {codBlocked && <p role="alert" style={{ margin: 0, color: "var(--shop-accent)" }}>Cash on delivery is available up to {formatINR(site.codMax)}. Please choose UPI or card.</p>}
               </fieldset>
-              <button className="btn-shop dark" type="submit" disabled={codBlocked} style={{ minHeight: 58 }}>
-                Request order on WhatsApp · {formatINR(t.total)}
+              {errors.submit && <p role="alert" className="checkout-error">{errors.submit} <Link href="/cart/">Review bag</Link> or <a href={waLink("I need help placing an order.")} target="_blank" rel="noopener">contact us on WhatsApp</a>.</p>}
+              <button className="btn-shop dark" type="submit" disabled={codBlocked || submitting} style={{ minHeight: 58 }}>
+                {submitting ? "Recording your request…" : `Request order on WhatsApp · ${formatINR(t.total)}`}
               </button>
               <p style={{ margin: "-18px 0 0", fontSize: 13, color: "var(--shop-muted)" }}>
-                Your order opens in WhatsApp, ready to send. By placing it you agree to our <Link href="/policies/?t=terms">terms</Link> and <Link href="/policies/?t=returns">exchange policy</Link>.
+                {connected ? "Your request is recorded securely. On the next screen, open WhatsApp and send it for confirmation." : "Your order opens in WhatsApp, ready to send."} By placing it you agree to our <Link href="/policies/?t=terms">terms</Link> and <Link href="/policies/?t=returns">exchange policy</Link>.
               </p>
             </form>
 

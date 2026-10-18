@@ -9,7 +9,7 @@ export const site = {
   tagline: "Woven in Elegance",
   description:
     "Ready-to-wear sarees, designer blouses, tassels, western & traditional wear, customised outfits and hand-painted pieces — finished by hand.",
-  url: "https://www.ruaacreation.com", // your domain
+  url: (process.env.NEXT_PUBLIC_SITE_URL || "https://ruaa-creation.vercel.app").replace(/\/$/, ""),
 
   // WhatsApp number in international format, digits only (91 = India). Orders and enquiries are sent here.
   whatsapp: "917972657888",

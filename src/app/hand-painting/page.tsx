@@ -1,12 +1,9 @@
-import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import Link from "next/link";
-import { products } from "@/lib/products";
+import { getCatalogue } from "@/lib/catalogue";
 import ProductCard from "@/components/ProductCard";
 
-export const metadata: Metadata = {
-  title: "Hand painting",
-  description: "Florals, birds and borders painted by hand on silk, organza and chanderi — every piece one of a kind.",
-};
+export const metadata = pageMetadata('Hand-painted sarees, blouses & dupattas', 'Explore hand-painted sarees, blouses and dupattas from Ruaa Creation, or request your own floral design painted on fabric.', '/hand-painting/');
 
 const MOTIFS = [
   ["Lotus", "Soft pink lotus buds — our signature, straight from the Ruaa logo.", "/images/silk-a.jpg"],
@@ -15,7 +12,8 @@ const MOTIFS = [
   ["Gypsophila scatter", "Tiny all-over blossoms for a light, airy drape.", "/images/silk-c.jpg"],
 ];
 
-export default function HandPaintingPage() {
+export default async function HandPaintingPage() {
+  const products = await getCatalogue();
   const painted = products.filter((p) => p.category === "Hand Painted");
   return (
     <>

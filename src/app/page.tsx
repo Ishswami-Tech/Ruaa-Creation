@@ -1,45 +1,45 @@
+import { pageMetadata, jsonLd, websiteStructuredData } from "@/lib/seo";
 import Link from "next/link";
-import { categories } from "@/lib/products";
+import { getCatalogue, getCategories } from "@/lib/catalogue";
 import { site, formatINR } from "@/lib/site";
 import NewArrivals from "@/components/NewArrivals";
 import Newsletter from "@/components/Newsletter";
 import { RecentlyViewed } from "@/components/bits";
 
-export default function Home() {
+export const metadata = pageMetadata("Sarees, designer blouses & custom outfits", site.description, "/");
+
+export default async function Home() {
+  const [catalogue, shopCategories] = await Promise.all([getCatalogue(), getCategories()]);
+  const categories = shopCategories.map((c) => {
+    const prices = catalogue.filter((p) => p.category === c.name).map((p) => p.price);
+    return { name: c.name, image: c.image || "/images/logo.jpg", href: `/collections/${c.id}/`, from: prices.length ? `From ${formatINR(Math.min(...prices))}` : "Explore collection" };
+  });
+  categories.push({ name: "Customised Outfits", image: "/images/custom.png", href: "/custom/", from: "Made to measure" });
   return (
     <>
-      <section className="hero">
-        <div className="wrap split">
-          <div className="stack" style={{ gap: 24 }}>
-            <span className="eyebrow">The Festive Edit · 2026</span>
-            <h1 className="h1">Woven in <em>Elegance</em>,<br />ready to wear.</h1>
-            <p className="lead">Sarees, designer blouses and festive sets — finished by hand, sized for you, and delivered pressed and ready for the occasion.</p>
-            <div className="row">
-              <Link href="/shop/" className="btn">Shop the edit</Link>
-              <Link href="/custom/" className="btn btn-outline">Book a custom fit</Link>
-            </div>
-            <ul className="ticks">
-              <li>✓ Free shipping above {formatINR(site.freeShippingAbove)}</li>
-              <li>✓ Sizes XS–XXL + made to measure</li>
-              <li>✓ {site.exchangeDays}-day exchange</li>
-            </ul>
-          </div>
-          <div className="hero-arch">
-            <img src="/images/banner.jpg" alt="Ruaa Creation — sarees, designer blouses, tassels, western, traditional, customised outfits and hand painting" />
-          </div>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(websiteStructuredData()) }} />
+      <section className="ruaa-hero" aria-label="Welcome to Ruaa Creation">
+        <div className="ruaa-hero-art">
+          <img src="/images/banner.jpg" width={1536} height={1024} fetchPriority="high" alt="Ruaa Creation — Woven in Elegance, with our signature floral and couture artwork" />
+        </div>
+        <div className="ruaa-hero-copy">
+          <span className="eyebrow">The Ruaa wardrobe</span>
+          <h1>Woven in<br /><em>Elegance.</em></h1>
+          <p>Sarees, designer blouses &amp; outfits.<br />A little tradition. A little you.</p>
+          <Link href="/shop/" className="ruaa-cta">Discover the collection <span aria-hidden="true">↗</span></Link>
+          <Link href="/custom/" className="ruaa-custom">Made to your measure <span aria-hidden="true">→</span></Link>
         </div>
       </section>
-
       <section className="section section-sand">
         <div className="wrap">
           <div className="center stack" style={{ gap: 10, marginBottom: 40 }}>
             <span className="eyebrow">Shop by category</span>
-            <h2 className="h2">Seven ways to wear Ruaa</h2>
+            <h2 className="h2">The Ruaa collections</h2>
           </div>
           <div className="cat-grid">
             {categories.map((c) => (
               <Link key={c.name} href={c.href} className="cat-tile">
-                <img src={c.image} alt="" />
+                <img src={c.image} width={110} height={110} loading="lazy" alt="" />
                 <b>{c.name}</b>
                 <small>{c.from}</small>
               </Link>
@@ -51,7 +51,7 @@ export default function Home() {
 
       <section className="section" style={{ paddingBottom: 0 }}>
         <div className="wrap">
-          <div className="edits">
+          <div className="edits home-edits">
             <Link href="/collections/festive-edit/" className="edit-card big" style={{ background: "#F1E3D2" }}>
               <span><small>The Festive Edit</small><b>Pujo, Diwali &amp; every celebration</b><em>Shop now →</em></span>
               <img src="/images/saree.png" alt="" />
@@ -104,7 +104,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="section-sand" style={{ padding: "64px 0" }}>
+      <section className="section-sand home-services" style={{ padding: "64px 0" }}>
         <div className="wrap promises">
           <div><strong>Free shipping</strong><span>Across India above {formatINR(site.freeShippingAbove)}</span></div>
           <div><strong>{site.exchangeDays}-day exchange</strong><span>On all ready-to-wear</span></div>

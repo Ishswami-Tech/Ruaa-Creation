@@ -1,0 +1,86 @@
+generator client {
+  provider = "prisma-client"
+  output = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model RuaaCategory {
+  id          String @id
+  name        String @unique
+  description String @default("")
+  image       String @default("")
+  position    Int @default(0)
+  products    RuaaProduct[]
+}
+
+model RuaaProduct {
+  slug       String @id
+  categoryId String
+  category   RuaaCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  status     String @default("draft")
+  data       Json
+  stock      Int @default(0)
+  version    Int @default(1)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  @@index([status, categoryId])
+}
+
+model RuaaOrder {
+  id            String @id
+  requestKey    String @unique
+  data          Json
+  status        String @default("requested")
+  paymentStatus String @default("unpaid")
+  tracking      String @default("")
+  notes         String @default("")
+  version       Int @default(1)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  @@index([createdAt])
+}
+
+model RuaaMedia {
+  id        String @id @default(uuid())
+  name      String
+  bytes     Bytes
+  width     Int
+  height    Int
+  createdAt DateTime @default(now())
+}
+
+model RuaaAdmin {
+  id           String @id @default(uuid())
+  email        String @unique
+  passwordHash String
+  active       Boolean @default(true)
+  sessions     RuaaSession[]
+  createdAt    DateTime @default(now())
+}
+
+model RuaaSession {
+  tokenHash String @id
+  adminId   String
+  admin     RuaaAdmin @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  @@index([expiresAt])
+}
+
+model RuaaRateLimit {
+  key       String @id
+  count     Int
+  expiresAt DateTime
+  @@index([expiresAt])
+}
+
+model RuaaAudit {
+  id        String @id @default(uuid())
+  adminId   String
+  action    String
+  target    String
+  createdAt DateTime @default(now())
+  @@index([createdAt])
+}

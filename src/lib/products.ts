@@ -6,7 +6,7 @@
  *  `stock` (optional) shows "Only N left" when 5 or fewer.
  * ─────────────────────────────────────────────────────────────
  */
-export type Category = "Sarees" | "Blouses" | "Tassels" | "Western" | "Traditional" | "Hand Painted";
+export type Category = string;
 export type Occasion = "Festive" | "Wedding" | "Party" | "Everyday" | "Office";
 
 export type Product = {
@@ -180,7 +180,7 @@ export const collections: Collection[] = [
 
 export const getCollection = (slug: string) => collections.find((c) => c.slug === slug);
 export const getProduct = (slug: string) => products.find((p) => p.slug === slug);
-export const collectionForCategory = (c: Category) => collections.find((x) => x.match({ category: c } as Product) && x.slug !== "new-arrivals")!;
+export const collectionForCategory = (c: Category) => collections.slice(0, 6).find((x) => x.match({ category: c } as Product)) ?? { slug: "", name: c };
 
 /** Homepage category tiles */
 export const categories = [
@@ -195,11 +195,11 @@ export const categories = [
 
 export const discountPct = (p: Product) => (p.mrp ? Math.round(((p.mrp - p.price) / p.mrp) * 100) : 0);
 
-export function searchProducts(q: string) {
+export function searchProducts(q: string, catalogue: Product[] = products) {
   const s = q.trim().toLowerCase();
   if (!s) return [];
   const words = s.split(/\s+/);
-  return products.filter((p) => {
+  return catalogue.filter((p) => {
     const hay = [p.name, p.category, p.fabric, p.description, p.tag ?? "", ...p.occasions].join(" ").toLowerCase();
     return words.every((w) => hay.includes(w));
   });

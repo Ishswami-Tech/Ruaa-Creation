@@ -1,8 +1,11 @@
+"use client";
 import Link from "next/link";
+import { useCategories } from "./CatalogueProvider";
 import { site, waLink } from "@/lib/site";
 import Brand from "./Brand";
 
 export default function Footer() {
+  const categories = useCategories();
   return (
     <footer className="site-footer">
       <div className="wrap footer-grid">
@@ -12,11 +15,7 @@ export default function Footer() {
         </div>
         <nav aria-label="Shop">
           <h2>Shop</h2>
-          <Link href="/collections/sarees/">Sarees</Link>
-          <Link href="/collections/blouses/">Designer Blouses</Link>
-          <Link href="/collections/tassels/">Tassels</Link>
-          <Link href="/collections/western/">Western Wear</Link>
-          <Link href="/collections/traditional/">Traditional Wear</Link>
+          {categories.map((c) => <Link key={c.id} href={`/collections/${c.id}/`}>{c.name}</Link>)}
           <Link href="/collections/sale/">Sale</Link>
         </nav>
         <nav aria-label="Atelier">

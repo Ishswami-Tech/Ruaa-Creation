@@ -4,15 +4,19 @@ import Link from "next/link";
 import { useCart } from "./CartProvider";
 import { formatINR } from "@/lib/site";
 import { FreeShipBar } from "./bits";
+import { useRef } from "react";
+import { useDialogBehavior } from "./useDialogBehavior";
 
 export default function MiniCart() {
   const { drawerOpen, setDrawerOpen, lines, subtotal, setQty, remove, count } = useCart();
+  const dialog = useRef<HTMLElement>(null);
+  useDialogBehavior(drawerOpen, () => setDrawerOpen(false), dialog);
   if (!drawerOpen) return null;
   const close = () => setDrawerOpen(false);
 
   return (
     <div className="drawer-backdrop" onClick={close}>
-      <aside className="drawer shop-ui" role="dialog" aria-modal="true" aria-label="Your bag" onClick={(e) => e.stopPropagation()}>
+      <aside ref={dialog} tabIndex={-1} className="drawer shop-ui" role="dialog" aria-modal="true" aria-label="Your bag" onClick={(e) => e.stopPropagation()}>
         <div className="drawer-head">
           <h2 className="shop-title" style={{ fontSize: 26 }}>Your bag ({count})</h2>
           <button className="icon-btn" aria-label="Close bag" onClick={close}>✕</button>

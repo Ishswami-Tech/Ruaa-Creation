@@ -1,11 +1,8 @@
 import { Suspense } from "react";
-import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import PoliciesClient from "./PoliciesClient";
 
-export const metadata: Metadata = {
-  title: "Size guide & policies",
-  description: "Size guide, shipping, returns & exchanges, privacy policy and terms of sale.",
-};
+export const metadata = pageMetadata('Size guide, shipping & exchange policies', 'Find Ruaa Creation sizing information, shipping and exchange policies, privacy information and terms for WhatsApp order requests.', '/policies/');
 
 export default function PoliciesPage() {
   return (

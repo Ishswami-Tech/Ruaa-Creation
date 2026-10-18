@@ -1,12 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { products, type Category } from "@/lib/products";
+import { type Category } from "@/lib/products";
 import ProductCard from "./ProductCard";
+import { useCatalogue, useCategories } from "./CatalogueProvider";
 
 const TABS: (Category | "All")[] = ["All", "Sarees", "Blouses", "Western", "Traditional"];
 
 export default function NewArrivals() {
+  const products = useCatalogue();
+  const tabs = ["All", ...useCategories().map((c) => c.name)];
   const [tab, setTab] = useState<Category | "All">("All");
   const fresh = [...products].sort((a, b) => Number(!!b.isNew) - Number(!!a.isNew));
   const list = (tab === "All" ? fresh : fresh.filter((p) => p.category === tab)).slice(0, 8);
@@ -19,7 +22,7 @@ export default function NewArrivals() {
           <h2 className="h2">Ready to wear this season</h2>
         </div>
         <div className="chips" role="group" aria-label="Filter new arrivals">
-          {TABS.map((t) => (
+          {tabs.map((t) => (
             <button key={t} className="chip" aria-pressed={tab === t} onClick={() => setTab(t)}>{t}</button>
           ))}
         </div>

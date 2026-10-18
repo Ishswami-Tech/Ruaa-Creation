@@ -21,7 +21,7 @@ function Success() {
     );
 
   const first = order.name.split(" ")[0] || "there";
-  const cod = order.payment.toLowerCase().includes("cash");
+  const cod = order.payment.toLowerCase().includes("cash") || order.payment.toLowerCase() === "cod";
 
   return (
     <section className="wrap" style={{ maxWidth: 1120, padding: "56px 24px 80px" }}>
@@ -31,16 +31,16 @@ function Success() {
           <span className="shop-eyebrow">Order request {order.id}</span>
           <h1 className="shop-title" style={{ fontSize: "clamp(36px,5vw,52px)" }}>Thank you, {first}!</h1>
           <p style={{ margin: 0, fontSize: 17, lineHeight: 1.7, color: "#5A4A42" }}>
-            Your request has opened in WhatsApp — press <strong>Send</strong> so we receive it. Your order is confirmed only after we reply with availability and {cod ? "delivery arrangements" : "payment instructions"}. Your bag has been kept in case you need to try again.
+            Open WhatsApp below and press <strong>Send</strong> to confirm your request with us. Your order is confirmed only after we reply with availability and {cod ? "delivery arrangements" : "payment instructions"}. Your bag has been kept in case you need to try again.
           </p>
           <ol className="track" aria-label="Order progress">
-            <li data-on="1"><strong>Request sent</strong><span>Today</span></li>
+            <li data-on="1"><strong>Request prepared</strong><span>Send on WhatsApp</span></li>
             <li><strong>Confirmed</strong><span>We reply on WhatsApp</span></li>
             <li><strong>Packed &amp; shipped</strong><span>2–3 working days</span></li>
             <li><strong>Delivered</strong><span>3–8 days after dispatch</span></li>
           </ol>
           <div className="row">
-            <a className="btn-shop wa" href={order.link} target="_blank" rel="noopener">WhatsApp didn&apos;t open? Tap here</a>
+            <a className="btn-shop wa" href={order.link} target="_blank" rel="noopener">Send request on WhatsApp</a>
             <Link href="/account/" className="btn-shop ghost">My orders</Link>
             <Link href="/shop/" className="btn-shop ghost">Continue shopping</Link>
           </div>

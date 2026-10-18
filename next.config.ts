@@ -1,8 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Builds a fully static site into /out — host it anywhere (Vercel, Netlify, Hostinger, cPanel, S3).
-  output: "export",
+  // Server rendering lets catalogue changes appear without a deployment.
   trailingSlash: true,
   images: { unoptimized: true },
 };

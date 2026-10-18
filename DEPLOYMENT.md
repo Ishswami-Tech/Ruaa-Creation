@@ -19,8 +19,10 @@ The team and project variables are configured in the production environment:
 
 The production environment allows only the `main` branch. Anyone allowed to push to `main` can trigger a production release; no manual approval is configured. Required-reviewer rules are unavailable on the current GitHub billing plan.
 
-## Current blockers
+## Current deployment setup
 
-Activation stays disabled until the token is configured. A Vercel token authenticates the workflow but does not remove account, contributor or billing restrictions. The last corrected deployment was blocked because Vercel could not authorize the commit author. Link GitHub account `aadeshbhujbal` to the Vercel owner account and resolve any remaining account or plan requirements before expecting a successful release.
+Token-based deployments are configured. Vercel's contributor check still applies: the authenticated `ishswami` account is authorised for this project. Preserve commit authorship and do not rewrite history to change it.
 
-The live domain is `https://ruaa-creation.vercel.app`. The initial deployment returned 404s because the project used the Other preset. `vercel.json` explicitly selects Next.js and lets its builder detect the static export; do not override the framework's output directory with `out`, as the builder first needs the default `.next` metadata. The pipeline's staged-page checks prevent a deployment with these 404s from replacing production.
+The live domain is `https://ruaa-creation.vercel.app`. `vercel.json` selects the Next.js framework and its default `.next` output. The app now includes server routes for Prisma/PostgreSQL and admin access; it is no longer a static export and cannot be deployed by uploading `out`.
+
+Verification uses an isolated PostgreSQL service for admin integration tests before production deployment. No production database secret is supplied to those tests. Follow `ADMIN-SETUP.md` to connect the real database, review/apply the additive migration, import the catalogue and create the owner account. Builds do not migrate or seed a database automatically.

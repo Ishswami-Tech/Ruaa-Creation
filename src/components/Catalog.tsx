@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
+import { useDialogBehavior } from "./useDialogBehavior";
 import { type Category, type Occasion, type Product } from "@/lib/products";
 import { site, formatINR } from "@/lib/site";
 import ProductCard from "./ProductCard";
@@ -36,6 +37,14 @@ export default function Catalog({ base, eyebrow, title, blurb, heroImage, heroTo
   const [occ, setOcc] = useState<string[]>([]);
   const [sort, setSort] = useState("featured");
   const [showFilters, setShowFilters] = useState(false);
+  const filterPanel = useRef<HTMLElement>(null);
+  useDialogBehavior(showFilters, () => setShowFilters(false), filterPanel);
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 860px)");
+    const resize = () => { if (!query.matches) setShowFilters(false); };
+    query.addEventListener("change", resize);
+    return () => query.removeEventListener("change", resize);
+  }, []);
 
   useEffect(() => setCat(initialCategory), [initialCategory]);
 
@@ -84,8 +93,8 @@ export default function Catalog({ base, eyebrow, title, blurb, heroImage, heroTo
         )}
 
         <div className="shop-layout">
-          <aside className={`filters ${showFilters ? "is-open" : ""}`} aria-label="Filters">
-            <div className="filters-head"><h2>Filters</h2><button className="text-btn mobile-only" onClick={() => setShowFilters(false)}>Done</button></div>
+          <aside ref={filterPanel} tabIndex={-1} role={showFilters ? "dialog" : undefined} aria-modal={showFilters ? true : undefined} className={`filters ${showFilters ? "is-open" : ""}`} aria-label="Filters">
+            <div className="filters-head"><h2>Filters</h2><button className="text-btn catalog-filter-toggle" onClick={() => setShowFilters(false)}>Done</button></div>
             <fieldset><legend>Size</legend>
               <div className="chips">{SIZES.map((s) => <button key={s} type="button" className="size-btn" aria-pressed={size === s} onClick={() => setSize(size === s ? null : s)}>{s}</button>)}</div>
             </fieldset>
@@ -109,7 +118,7 @@ export default function Catalog({ base, eyebrow, title, blurb, heroImage, heroTo
                 </div>
               ) : <span />}
               <div className="row" style={{ gap: 8 }}>
-                <button className="chip mobile-only" onClick={() => setShowFilters(true)}>Filters{activeCount ? ` (${activeCount})` : ""}</button>
+                <button className="chip catalog-filter-toggle" onClick={() => setShowFilters(true)}>Filters{activeCount ? ` (${activeCount})` : ""}</button>
                 <label style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 14 }}>Sort
                   <select className="select" value={sort} onChange={(e) => setSort(e.target.value)}>
                     <option value="featured">Featured</option>

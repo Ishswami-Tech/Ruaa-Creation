@@ -15,11 +15,11 @@ const BLOUSE = [
 ];
 
 export default function ProductDetail({ p }: { p: Product }) {
-  const { add, markViewed, notify, ready } = useCart();
+  const { add, markViewed, notify, ready, setDrawerOpen } = useCart();
   const router = useRouter();
   const [shot, setShot] = useState(0);
   const [colour, setColour] = useState(0);
-  const [blouse, setBlouse] = useState("ready");
+  const [blouse, setBlouse] = useState("piece");
   const [size, setSize] = useState<string | null>(null);
   const [qty, setQty] = useState(1);
   const [error, setError] = useState("");
@@ -47,7 +47,7 @@ export default function ProductDetail({ p }: { p: Product }) {
     if (needsSize && !size) { setError("Please choose a size."); document.getElementById("size-field")?.scrollIntoView({ behavior: "smooth", block: "center" }); return; }
     setError("");
     add({ slug: p.slug, name: p.name, image: p.images[0], tone: p.tone, options, unitPrice: unit }, qty);
-    if (goCheckout) router.push("/checkout/");
+    if (goCheckout) { setDrawerOpen(false); router.push("/checkout/"); }
   };
 
   const share = async () => {
@@ -58,7 +58,7 @@ export default function ProductDetail({ p }: { p: Product }) {
     } catch {}
   };
 
-  const isArt = p.images[shot].endsWith(".jpg");
+  const isArt = /\.(?:jpe?g|webp)$/i.test(p.images[shot]) || p.images[shot].startsWith("/api/media/");
 
   return (
     <>

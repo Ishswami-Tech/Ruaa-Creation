@@ -1,11 +1,8 @@
-import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import Link from "next/link";
 import CustomBrief from "./CustomBrief";
 
-export const metadata: Metadata = {
-  title: "Customised outfits",
-  description: "Designer blouses, festive sets and western outfits designed around you and stitched to your measurements.",
-};
+export const metadata = pageMetadata('Custom outfits & made-to-measure blouses', 'Request a custom blouse, festive set or western outfit from Ruaa Creation. Share your design, measurements and occasion on WhatsApp.', '/custom/');
 
 const FAQ = [
   ["How long does a custom outfit take?", "Blouses take 7–10 days. Festive and bridal sets take 3–4 weeks. Rush orders are possible for an extra charge, depending on our calendar."],
